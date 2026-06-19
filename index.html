@@ -79,6 +79,88 @@ body {
   100% { width:0%;  margin-left:100%; }
 }
 
+/* ── DEMO BANNER ─────────────────────────────── */
+.demo-banner {
+  background: linear-gradient(135deg, #7e2138 0%, #a93226 50%, #c0392b 100%);
+  color: #fff;
+  text-align: center;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  border-bottom: 2px solid rgba(255,255,255,0.2);
+}
+.demo-banner .demo-dot {
+  width: 8px; height: 8px;
+  background: #fff;
+  border-radius: 50%;
+  animation: demoPulse 1.5s ease-in-out infinite;
+}
+@keyframes demoPulse {
+  0%,100% { opacity: 1; box-shadow: 0 0 0 0 rgba(255,255,255,0.7); }
+  50%     { opacity: 0.5; box-shadow: 0 0 0 8px rgba(255,255,255,0); }
+}
+.demo-banner strong {
+  text-transform: uppercase;
+  font-size: 11px;
+  background: rgba(255,255,255,0.2);
+  padding: 2px 10px;
+  border-radius: 20px;
+}
+.demo-banner span {
+  opacity: 0.9;
+}
+
+/* ── FILTER BAR ──────────────────────────────── */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid var(--sand);
+}
+.filter-bar .filter-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--navy);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-right: 4px;
+  white-space: nowrap;
+}
+.filter-btn {
+  padding: 6px 14px;
+  border: 1px solid var(--sand);
+  background: var(--cream);
+  color: var(--forest);
+  border-radius: 20px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.filter-btn:hover {
+  background: var(--navy);
+  color: #fff;
+  border-color: var(--navy);
+}
+.filter-btn.active {
+  background: var(--gold);
+  color: #fff;
+  border-color: var(--gold);
+}
+
 /* ── HEADER ───────────────────────────────────── */
 header {
   background: var(--navy); padding: 0 20px;
@@ -177,6 +259,14 @@ main { padding:20px 16px 48px; max-width:1280px; margin:0 auto; }
 .chart-wrap canvas {
   max-height: 260px !important;
 }
+/* Taller chart for overview deposits - matches harvesting monthly chart */
+#tab-overview .chart-card.span-2 .chart-wrap {
+  max-height: 420px;
+}
+#tab-overview .chart-card.span-2 .chart-wrap canvas {
+  max-height: 400px !important;
+}
+/* Default span-2 charts */
 .chart-card.span-2 .chart-wrap {
   max-height: 420px;
 }
@@ -335,11 +425,16 @@ tr:last-child td { border-bottom:none; }
   .chart-wrap { max-height: 180px; }
   .chart-card.span-2 .chart-wrap { max-height: 260px; }
   .chart-card.span-2 .chart-wrap canvas { max-height: 240px !important; }
+  #tab-overview .chart-card.span-2 .chart-wrap { max-height: 260px; }
+  #tab-overview .chart-card.span-2 .chart-wrap canvas { max-height: 240px !important; }
   .chart-grid.cols-2 { grid-template-columns: 1fr; }
   .block-grid { grid-template-columns: repeat(2, 1fr); }
   .deposit-grand-total { flex-direction: column; gap: 8px; align-items: flex-start; }
   .deposit-grand-total .value { font-size: 20px; }
   .dep-strip-grid { grid-template-columns: repeat(2, 1fr); }
+  .demo-banner { font-size: 10px; padding: 6px 12px; }
+  .filter-bar { gap: 4px; padding: 8px 10px; }
+  .filter-btn { padding: 5px 10px; font-size: 10px; }
 }
 </style>
 </head>
@@ -351,6 +446,14 @@ tr:last-child td { border-bottom:none; }
   <div class="loading-sub">Operations Dashboard</div>
   <div class="loading-bar-wrap"><div class="loading-bar"></div></div>
 </div>
+
+<!-- DEMO BANNER -->
+<div class="demo-banner" id="demo-banner">
+  <div class="demo-dot"></div>
+  <strong>⚠ DEMO MODE</strong>
+  <span>Data is heavily inflated for demonstration purposes — not actual farm records</span>
+</div>
+
 <div id="toast"></div>
 
 <header>
@@ -381,6 +484,20 @@ tr:last-child td { border-bottom:none; }
 <div id="tab-overview" class="tab-panel active">
   <p class="section-title">Farm Operations Overview</p>
   <p class="section-sub">Consolidated summary across Harvesting, Land, and Financial records</p>
+
+  <!-- FILTER BAR -->
+  <div class="filter-bar">
+    <span class="filter-label">📅 Filter:</span>
+    <button class="filter-btn active" onclick="setTimeFilter('all', this)">All Data</button>
+    <button class="filter-btn" onclick="setTimeFilter('2025', this)">2025</button>
+    <button class="filter-btn" onclick="setTimeFilter('2026', this)">2026</button>
+    <button class="filter-btn" onclick="setTimeFilter('q1', this)">Q1 (Jan–Mar)</button>
+    <button class="filter-btn" onclick="setTimeFilter('q2', this)">Q2 (Apr–Jun)</button>
+    <button class="filter-btn" onclick="setTimeFilter('q3', this)">Q3 (Jul–Sep)</button>
+    <button class="filter-btn" onclick="setTimeFilter('q4', this)">Q4 (Oct–Dec)</button>
+    <button class="filter-btn" onclick="setTimeFilter('last3', this)">Last 3 Months</button>
+  </div>
+
   <div class="kpi-grid">
     <div class="kpi-card accent"><span class="icon">📐</span><div class="value" id="kpi-ov-avg-weight">—</div><div class="label">Avg Bunch Weight</div><div class="sub">Financial data (2025-2026)</div></div>
     <div class="kpi-card"><span class="icon">📦</span><div class="value" id="kpi-ov-total-vol-2026">—</div><div class="label">Total Volume</div><div class="sub">Financial data (2025-2026)</div></div>
@@ -401,6 +518,16 @@ tr:last-child td { border-bottom:none; }
 <!-- ══ HARVEST ════════════════════════════════════════════════════ -->
 <div id="tab-harvest" class="tab-panel">
   <p class="section-title">Harvesting Data</p><p class="section-sub" id="harv-sub">Bunch weights recorded across all blocks</p>
+  
+  <!-- FILTER BAR -->
+  <div class="filter-bar">
+    <span class="filter-label">📅 Filter:</span>
+    <button class="filter-btn active" onclick="setTimeFilter('all', this)">All Data</button>
+    <button class="filter-btn" onclick="setTimeFilter('2025', this)">2025</button>
+    <button class="filter-btn" onclick="setTimeFilter('2026', this)">2026</button>
+    <button class="filter-btn" onclick="setTimeFilter('last6', this)">Last 6 Months</button>
+  </div>
+
   <div class="kpi-grid">
     <div class="kpi-card accent"><span class="icon">⚖️</span><div class="value" id="kpi-harvest-total">—</div><div class="label">Total Harvested</div></div>
     <div class="kpi-card"><span class="icon">📊</span><div class="value" id="kpi-harvest-avg">—</div><div class="label">Avg Bunch Weight</div></div>
@@ -424,7 +551,6 @@ tr:last-child td { border-bottom:none; }
     <div class="kpi-card"><span class="icon">🏆</span><div class="value" id="kpi-tag-top">—</div><div class="label">Top Tagged Block</div><div class="sub" id="kpi-tag-topval">—</div></div>
   </div>
 
-  <!-- Upcoming Harvest Visual -->
   <div class="upcoming-harvest-visual">
     <div class="chart-title">Upcoming Expected Harvests</div>
     <div class="chart-sub" id="upcoming-harvest-sub">All outstanding tagged bunches with future expected harvest dates</div>
@@ -432,7 +558,6 @@ tr:last-child td { border-bottom:none; }
     <div class="harvest-strip-total"><div class="label">Total Upcoming</div><div class="value" id="upcoming-harvest-count">—</div></div>
   </div>
 
-  <!-- Upcoming Harvest by Month Accordion -->
   <div id="upcoming-harvest-accordion-container">
     <div class="chart-title" style="margin-bottom:6px;margin-top:8px;">Upcoming Harvests by Month</div>
     <div class="chart-sub" style="margin-bottom:16px;">Click a month to see all expected harvest dates — grouped by year</div>
@@ -517,6 +642,18 @@ tr:last-child td { border-bottom:none; }
 <!-- ══ FINANCIALS (BUDGETS & PROJECTIONS) ════════════════════════ -->
 <div id="tab-financials" class="tab-panel">
   <p class="section-title" id="fin-section-title">Financial Performance</p><p class="section-sub" id="fin-sub">Revenue, volume, pricing and bunch weight trends</p>
+  
+  <!-- FILTER BAR -->
+  <div class="filter-bar">
+    <span class="filter-label">📅 Filter:</span>
+    <button class="filter-btn active" onclick="setTimeFilter('all', this)">All Data</button>
+    <button class="filter-btn" onclick="setTimeFilter('2025', this)">2025</button>
+    <button class="filter-btn" onclick="setTimeFilter('2026', this)">2026</button>
+    <button class="filter-btn" onclick="setTimeFilter('q1', this)">Q1 (Jan–Mar)</button>
+    <button class="filter-btn" onclick="setTimeFilter('q2', this)">Q2 (Apr–Jun)</button>
+    <button class="filter-btn" onclick="setTimeFilter('last6', this)">Last 6 Months</button>
+  </div>
+
   <div class="kpi-grid">
     <div class="kpi-card accent"><span class="icon">💰</span><div class="value" id="kpi-fin-total-rev">—</div><div class="label">Total Revenue</div><div class="sub">All months (MWK)</div></div>
     <div class="kpi-card"><span class="icon">📅</span><div class="value" id="kpi-fin-last-rev">—</div><div class="label" id="kpi-fin-last-rev-label">Last Month Revenue</div><div class="sub">Actual (MWK)</div></div>
@@ -537,6 +674,17 @@ tr:last-child td { border-bottom:none; }
 <!-- ══ FINANCIALS (DEPOSIT TRACKER) ════════════════════════════ -->
 <div id="tab-deposits" class="tab-panel">
   <p class="section-title">Financials — Deposit Tracker</p><p class="section-sub" id="dep-sub">All batch deposits recorded per month</p>
+  
+  <!-- FILTER BAR -->
+  <div class="filter-bar">
+    <span class="filter-label">📅 Filter:</span>
+    <button class="filter-btn active" onclick="setTimeFilter('all', this)">All Data</button>
+    <button class="filter-btn" onclick="setTimeFilter('2025', this)">2025</button>
+    <button class="filter-btn" onclick="setTimeFilter('2026', this)">2026</button>
+    <button class="filter-btn" onclick="setTimeFilter('last3', this)">Last 3 Months</button>
+    <button class="filter-btn" onclick="setTimeFilter('last6', this)">Last 6 Months</button>
+  </div>
+
   <div class="kpi-grid">
     <div class="kpi-card accent"><span class="icon">🏦</span><div class="value" id="kpi-dep-grand-total">—</div><div class="label">Grand Total Deposits</div><div class="sub">All months (MWK)</div></div>
     <div class="kpi-card"><span class="icon">📅</span><div class="value" id="kpi-dep-last-deposit">—</div><div class="label">Last Deposit Made</div><div class="sub" id="kpi-dep-last-deposit-date">—</div></div>
@@ -578,14 +726,65 @@ const TARGET_LAND_HA=20, TOTAL_ACQUIRED_HA=10;
 Chart.defaults.font.family="'DM Sans',sans-serif";Chart.defaults.color='#7a7a7a';
 const CHARTS={};
 
+// Current time filter
+let currentTimeFilter = 'all';
+
 // ── UTILITY FUNCTIONS ──────────────────────────
 function showTab(id,btn){
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+id).classList.add('active');
   if(btn)btn.classList.add('active');
-  setTimeout(()=>window.dispatchEvent(new Event('resize')),50);
+  // Reset filter buttons in the newly shown tab
+  const panel = document.getElementById('tab-'+id);
+  if(panel){
+    const firstFilterBtn = panel.querySelector('.filter-btn');
+    if(firstFilterBtn){
+      panel.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+      firstFilterBtn.classList.add('active');
+    }
+  }
+  currentTimeFilter = 'all';
+  setTimeout(()=>{
+    refreshFilteredCharts();
+    window.dispatchEvent(new Event('resize'));
+  },50);
 }
+
+function setTimeFilter(filter, btn){
+  currentTimeFilter = filter;
+  // Update active state on all filter buttons in the current tab
+  const activePanel = document.querySelector('.tab-panel.active');
+  if(activePanel){
+    activePanel.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  }
+  if(btn) btn.classList.add('active');
+  refreshFilteredCharts();
+}
+
+function getFilteredMonths(){
+  const allMonths = FIN_MONTHS;
+  if(currentTimeFilter === 'all') return {months: allMonths, indices: allMonths.map((_,i)=>i)};
+  
+  const indices = [];
+  allMonths.forEach((m,i)=>{
+    const year = parseInt(m.split(' ')[1]);
+    const monthName = m.split(' ')[0];
+    const monthNum = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].indexOf(monthName) + 1;
+    
+    if(currentTimeFilter === '2025' && year === 2025) indices.push(i);
+    else if(currentTimeFilter === '2026' && year === 2026) indices.push(i);
+    else if(currentTimeFilter === 'q1' && monthNum >= 1 && monthNum <= 3) indices.push(i);
+    else if(currentTimeFilter === 'q2' && monthNum >= 4 && monthNum <= 6) indices.push(i);
+    else if(currentTimeFilter === 'q3' && monthNum >= 7 && monthNum <= 9) indices.push(i);
+    else if(currentTimeFilter === 'q4' && monthNum >= 10 && monthNum <= 12) indices.push(i);
+    else if(currentTimeFilter === 'last3' && i >= allMonths.length - 3) indices.push(i);
+    else if(currentTimeFilter === 'last6' && i >= allMonths.length - 6) indices.push(i);
+  });
+  
+  return {months: indices.map(i=>allMonths[i]), indices};
+}
+
 function setKPI(id,val){const el=document.getElementById(id);if(el)el.textContent=val;}
 function toast(msg,ms){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),ms||2800);}
 function fmtMWK(val){if(!val||val===0)return'—';return'MWK '+Math.round(val).toLocaleString('en');}
@@ -604,6 +803,10 @@ function upsertChart(id, type, labels, data, opts) {
   const MULTI = [GOLD,GOLD_L,OLIVE,NAVY_L,FOREST,GOLD_D,SAND,'#3b7dd8','#c0392b','#d4b44a','#5d8a4a','#e07b39'];
   const bg = palette ? palette : (isDoughnut ? MULTI : GOLD);
   if (CHARTS[id]) CHARTS[id].destroy();
+
+  // Calculate extra padding for labels (adds 15% headroom)
+  const maxVal = data.length > 0 ? Math.max(...data) : 0;
+  const yMax = maxVal > 0 ? maxVal * 1.18 : undefined;
 
   const labelPlugin = {
     id: 'chartLabels',
@@ -630,7 +833,7 @@ function upsertChart(id, type, labels, data, opts) {
           y = el.y;
         } else {
           x = el.x;
-          y = el.y - 6;
+          y = el.y - 8;
         }
         const metrics = ctx.measureText(dv);
         const pw = metrics.width + 6;
@@ -654,7 +857,11 @@ function upsertChart(id, type, labels, data, opts) {
       },
       scales: isDoughnut ? {} : {
         x: { grid: { color: dark?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.05)' }, ticks: { color: dark?SAND:FOREST, font: { size: 10 } } },
-        y: { grid: { color: dark?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.05)' }, ticks: { color: dark?SAND:FOREST, font: { size: 10 }, callback: v => v>=1000000?(v/1000000).toFixed(1)+'M':v>=1000?(v/1000).toFixed(0)+'K':v.toLocaleString() } }
+        y: { 
+          max: yMax,
+          grid: { color: dark?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.05)' }, 
+          ticks: { color: dark?SAND:FOREST, font: { size: 10 }, callback: v => v>=1000000?(v/1000000).toFixed(1)+'M':v>=1000?(v/1000).toFixed(0)+'K':v.toLocaleString() } 
+        }
       }
     },
     plugins: showLabels ? [labelPlugin] : []
@@ -663,14 +870,17 @@ function upsertChart(id, type, labels, data, opts) {
 
 function upsertDualLineChart(id,labels,data1,data2,label1,label2,color1,color2){
   const canvas=document.getElementById(id);if(!canvas)return;
+  const max1 = data1.length>0?Math.max(...data1):0;
+  const max2 = data2.length>0?Math.max(...data2):0;
   if(CHARTS[id]){CHARTS[id].data.labels=labels;CHARTS[id].data.datasets[0].data=data1;CHARTS[id].data.datasets[1].data=data2;CHARTS[id].update('none');return;}
-  CHARTS[id]=new Chart(canvas,{type:'line',data:{labels,datasets:[{label:label1,data:data1,borderColor:color1,backgroundColor:color1+'33',tension:0.4,yAxisID:'y',pointRadius:3},{label:label2,data:data2,borderColor:color2,backgroundColor:color2+'33',tension:0.4,yAxisID:'y1',pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:'#7a7a7a',font:{size:11}}}},scales:{y:{type:'linear',display:true,position:'left',title:{display:true,text:label1,color:'#7a7a7a'},ticks:{color:'#7a7a7a'},grid:{color:'rgba(0,0,0,0.05)'}},y1:{type:'linear',display:true,position:'right',title:{display:true,text:label2,color:'#7a7a7a'},ticks:{color:'#7a7a7a'},grid:{drawOnChartArea:false}},x:{ticks:{color:'#7a7a7a'},grid:{color:'rgba(0,0,0,0.05)'}}}}});
+  CHARTS[id]=new Chart(canvas,{type:'line',data:{labels,datasets:[{label:label1,data:data1,borderColor:color1,backgroundColor:color1+'33',tension:0.4,yAxisID:'y',pointRadius:3},{label:label2,data:data2,borderColor:color2,backgroundColor:color2+'33',tension:0.4,yAxisID:'y1',pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:'#7a7a7a',font:{size:11}}}},scales:{y:{type:'linear',display:true,position:'left',max:max1>0?max1*1.18:undefined,title:{display:true,text:label1,color:'#7a7a7a'},ticks:{color:'#7a7a7a'},grid:{color:'rgba(0,0,0,0.05)'}},y1:{type:'linear',display:true,position:'right',max:max2>0?max2*1.18:undefined,title:{display:true,text:label2,color:'#7a7a7a'},ticks:{color:'#7a7a7a'},grid:{drawOnChartArea:false}},x:{ticks:{color:'#7a7a7a'},grid:{color:'rgba(0,0,0,0.05)'}}}}});
 }
 
 function upsertDualBarChart(id,labels,data1,data2,label1,label2,color1,color2,dark){
   const canvas=document.getElementById(id);if(!canvas)return;dark=dark||false;
+  const maxVal = Math.max(...data1.concat(data2));
   if(CHARTS[id]){CHARTS[id].data.labels=labels;CHARTS[id].data.datasets[0].data=data1;if(CHARTS[id].data.datasets.length>1)CHARTS[id].data.datasets[1].data=data2;CHARTS[id].update('none');return;}
-  CHARTS[id]=new Chart(canvas,{type:'bar',data:{labels,datasets:[{label:label1,data:data1,backgroundColor:color1,borderRadius:4,borderSkipped:false},{label:label2,data:data2,backgroundColor:color2,borderRadius:4,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:600},plugins:{legend:{display:true,position:'top',labels:{color:dark?SAND:FOREST,font:{size:11},padding:12}},tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': '+(ctx.parsed.y||0).toLocaleString()}}},scales:{x:{grid:{color:dark?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.05)'},ticks:{color:dark?SAND:FOREST,font:{size:10}}},y:{grid:{color:dark?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.05)'},ticks:{color:dark?SAND:FOREST,font:{size:10}}}}}});
+  CHARTS[id]=new Chart(canvas,{type:'bar',data:{labels,datasets:[{label:label1,data:data1,backgroundColor:color1,borderRadius:4,borderSkipped:false},{label:label2,data:data2,backgroundColor:color2,borderRadius:4,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:600},plugins:{legend:{display:true,position:'top',labels:{color:dark?SAND:FOREST,font:{size:11},padding:12}},tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': '+(ctx.parsed.y||0).toLocaleString()}}},scales:{x:{grid:{color:dark?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.05)'},ticks:{color:dark?SAND:FOREST,font:{size:10}}},y:{max:maxVal>0?maxVal*1.18:undefined,grid:{color:dark?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.05)'},ticks:{color:dark?SAND:FOREST,font:{size:10}}}}}});
 }
 
 const TAG_PALETTE={'White ribbon':'#e8e4df','Yellow ribbon':'#d4b44a','Red ribbon':'#c0392b','White':'#f0ece6','Blue':'#3b7dd8','Dark green':'#2d5a27','Melow':OLIVE,'Orange':'#e07b39','White ulisi':'#ddd8d2','Blue ribbon':'#4a90d9','Light green ribbon':'#5d8a4a','Red ulisi':'#c23b2e','Mellon':'#e8a030','Orange ribbon':'#e06030','Black ribbon':'#333333','Green':'#3d6e40','Dark green wool':'#1e4d1a','Light green wool':'#4a7a1e','Black':'#1a1a1a','Red':'#e53e3e'};
@@ -682,49 +892,30 @@ function toggleDepositMonth(header){const body=header.nextElementSibling,chevron
 function toggleHarvestMonth(header){const body=header.nextElementSibling,chevron=header.querySelector('.harvest-month-chevron'),isOpen=body.classList.contains('open');body.classList.toggle('open',!isOpen);chevron.classList.toggle('open',!isOpen);}
 
 // ═══════════════════════════════════════════════════════════════
-// DUMMY DATA GENERATORS
+// DUMMY DATA
 // ═══════════════════════════════════════════════════════════════
 
-// Financial data: Jan 2025 - Mar 2026 (15 months)
-// Average revenue ~4M MWK with some variation
 const FIN_MONTHS = [
   'Jan 2025','Feb 2025','Mar 2025','Apr 2025','May 2025','Jun 2025',
   'Jul 2025','Aug 2025','Sep 2025','Oct 2025','Nov 2025','Dec 2025',
   'Jan 2026','Feb 2026','Mar 2026'
 ];
 
-// Modest planned volumes (kg) with natural variation
 const PLANNED_VOL = [8500,8200,9000,7800,9500,8800,9200,8600,9100,8400,8900,9300,8700,8500,9100];
-// Actual volumes slightly below or above planned, with one standout high month (May 2025) and one low (Feb 2026)
 const ACTUAL_VOL = [8100,7900,8700,7500,10200,8500,8900,8300,8800,8100,8600,9000,8400,7200,8800];
-// Average selling price around 450-520 MWK/kg
 const ACTUAL_PRICE = [480,465,490,455,510,475,495,460,485,470,500,505,490,475,495];
-// Average bunch weight 22-28 kg
 const ACTUAL_WEIGHT = [24.5,23.8,25.2,22.9,26.1,24.3,25.8,23.5,24.9,23.2,25.5,26.3,25.0,24.1,25.7];
-// Revenue = actual vol * avg price (roughly, with some rounding variation)
 const ACTUAL_REV = ACTUAL_VOL.map((v,i) => Math.round(v * ACTUAL_PRICE[i]));
 
-// Land data: 7 blocks, total ~7.15 ha planted, 20 ha target
 const LAND_BLOCKS = {
-  'Block A': 1.85,
-  'Block B': 1.20,
-  'Block C': 0.95,
-  'Block D': 1.45,
-  'Block E': 0.75,
-  'Block F': 0.55,
-  'Block G': 0.40
+  'Block A': 1.85,'Block B': 1.20,'Block C': 0.95,'Block D': 1.45,
+  'Block E': 0.75,'Block F': 0.55,'Block G': 0.40
 };
-const TOTAL_PLANTED = Object.values(LAND_BLOCKS).reduce((a,b)=>a+b,0); // ~7.15 ha
+const TOTAL_PLANTED = Object.values(LAND_BLOCKS).reduce((a,b)=>a+b,0);
 
-// Harvest data by block (kg) — modest numbers
 const HARVEST_BY_BLOCK = {
-  'Block A': 24500,
-  'Block B': 18200,
-  'Block C': 12800,
-  'Block D': 21500,
-  'Block E': 9800,
-  'Block F': 7200,
-  'Block G': 5100
+  'Block A': 24500,'Block B': 18200,'Block C': 12800,'Block D': 21500,
+  'Block E': 9800,'Block F': 7200,'Block G': 5100
 };
 const HARVEST_MONTHLY = {
   '2025-01': 7200,'2025-02': 6800,'2025-03': 7900,'2025-04': 7100,'2025-05': 9500,
@@ -736,7 +927,6 @@ const HARVEST_AVG_WEIGHTS = {
   'Block E': 22.9,'Block F': 23.2,'Block G': 24.0
 };
 
-// Tagging data
 const TAGGING_BY_BLOCK = {
   'Block A': 48,'Block B': 35,'Block C': 28,'Block D': 42,'Block E': 18,'Block F': 12,'Block G': 8
 };
@@ -744,7 +934,6 @@ const TAGGING_BY_COLOUR = {
   'Yellow ribbon': 52,'White ribbon': 45,'Blue': 38,'Red ribbon': 25,'Green': 18,'Orange': 13
 };
 
-// Upcoming harvest list (future dates from now)
 function generateUpcomingHarvests() {
   const now = new Date();
   const harvests = [];
@@ -767,14 +956,12 @@ function generateUpcomingHarvests() {
   return harvests.sort((a,b) => a.expectedDate - b.expectedDate);
 }
 
-// Pump data
 const PUMP_DATA = {
   'Pump 1': {2025: 245, 2026: 78},
   'Pump 2': {2025: 320, 2026: 95},
   'Pump 3': {2025: 180, 2026: 52}
 };
 
-// Irrigation data
 const IRR_BY_YEAR = {2025: 4850, 2026: 1420};
 const IRR_SESSIONS_BY_YEAR = {2025: 62, 2026: 18};
 const IRR_BY_BLOCK = {
@@ -783,7 +970,6 @@ const IRR_BY_BLOCK = {
   'Block H': 280,'Block I': 210,'Block J': 160
 };
 
-// Deposit data — months with modest deposits, avg ~4M per month
 const DEPOSIT_DATA = [
   {month:'January',year:2025,deposits:[
     {batchNo:1,date:'2025-01-08',amount:1350000,depNo:'DEP-001'},
@@ -856,36 +1042,136 @@ const DEPOSIT_DATA = [
 ];
 
 // ═══════════════════════════════════════════════════════════════
-// RENDER FUNCTIONS (adapted from original but using hardcoded data)
+// FILTERED DATA GETTERS
+// ═══════════════════════════════════════════════════════════════
+
+function getFilteredDeposits(){
+  if(currentTimeFilter === 'all') return DEPOSIT_DATA;
+  
+  return DEPOSIT_DATA.filter(m => {
+    const monthNum = ['January','February','March','April','May','June','July','August','September','October','November','December'].indexOf(m.month) + 1;
+    const year = m.year;
+    
+    if(currentTimeFilter === '2025') return year === 2025;
+    if(currentTimeFilter === '2026') return year === 2026;
+    if(currentTimeFilter === 'q1') return monthNum >= 1 && monthNum <= 3;
+    if(currentTimeFilter === 'q2') return monthNum >= 4 && monthNum <= 6;
+    if(currentTimeFilter === 'q3') return monthNum >= 7 && monthNum <= 9;
+    if(currentTimeFilter === 'q4') return monthNum >= 10 && monthNum <= 12;
+    
+    // last3 / last6
+    const allMonths = DEPOSIT_DATA;
+    const idx = allMonths.indexOf(m);
+    if(currentTimeFilter === 'last3') return idx >= allMonths.length - 3;
+    if(currentTimeFilter === 'last6') return idx >= allMonths.length - 6;
+    
+    return true;
+  });
+}
+
+function getFilteredHarvestMonthly(){
+  if(currentTimeFilter === 'all') return HARVEST_MONTHLY;
+  
+  const filtered = {};
+  Object.entries(HARVEST_MONTHLY).forEach(([key,val]) => {
+    const [yr,mn] = key.split('-').map(Number);
+    if(currentTimeFilter === '2025' && yr === 2025) filtered[key] = val;
+    if(currentTimeFilter === '2026' && yr === 2026) filtered[key] = val;
+    if(currentTimeFilter === 'last6'){
+      const keys = Object.keys(HARVEST_MONTHLY).sort();
+      const last6Keys = keys.slice(-6);
+      if(last6Keys.includes(key)) filtered[key] = val;
+    }
+  });
+  return filtered;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// REFRESH CHARTS WHEN FILTER CHANGES
+// ═══════════════════════════════════════════════════════════════
+
+function refreshFilteredCharts(){
+  // Re-render financial charts with filtered data
+  const filtered = getFilteredMonths();
+  const fmonths = filtered.months;
+  const fidx = filtered.indices;
+  
+  const fplannedVol = fidx.map(i=>PLANNED_VOL[i]);
+  const factualVol = fidx.map(i=>ACTUAL_VOL[i]);
+  const factualPrice = fidx.map(i=>ACTUAL_PRICE[i]);
+  const factualWeight = fidx.map(i=>ACTUAL_WEIGHT[i]);
+  const factualRev = fidx.map(i=>ACTUAL_REV[i]);
+  
+  if(fmonths.length > 0){
+    upsertDualBarChart('c_fin_prodVolume', fmonths, fplannedVol, factualVol, 'Planned', 'Actual', NAVY_L, GOLD, false);
+    upsertDualBarChart('c_prodVolume', fmonths, fplannedVol, factualVol, 'Planned', 'Actual', NAVY_L, GOLD, false);
+    upsertChart('c_fin_revenue','bar',fmonths,factualRev,{dark:true,fill:false,showLabels:true});
+    upsertChart('c_fin_price','line',fmonths,factualPrice,{dark:false,fill:false,tension:0.4,showLabels:true});
+    upsertChart('c_fin_weight','line',fmonths,factualWeight,{dark:false,fill:false,tension:0.4,showLabels:true});
+    upsertDualLineChart('c_fin_priceWeight', fmonths, factualPrice, factualWeight, 'Avg Price (MWK)', 'Avg Weight (kg)', GOLD, NAVY_L);
+    upsertDualLineChart('c_priceWeight', fmonths, factualPrice, factualWeight, 'Avg Price (MWK)', 'Avg Weight (kg)', GOLD, NAVY_L);
+  }
+  
+  // Re-render deposit charts with filtered data
+  const fdeposits = getFilteredDeposits();
+  const depositMonths = fdeposits.map(m => {
+    const total = m.deposits.reduce((s,d) => s + d.amount, 0);
+    return {
+      name: m.month, year: m.year, displayTotal: total, computedTotal: total,
+      deposits: m.deposits.map(d => ({batchNo: d.batchNo, date: d.date, parsedDate: new Date(d.date), amount: d.amount, rowDepNo: d.depNo}))
+    };
+  });
+  
+  if(depositMonths.length > 0){
+    const chartLabels = depositMonths.map(m => monthLbl(m));
+    const chartTotals = depositMonths.map(m => m.displayTotal);
+    const chartCounts = depositMonths.map(m => m.deposits.filter(d => d.amount > 0).length);
+    
+    upsertChart('c_dep_monthly','bar',chartLabels,chartTotals,{dark:true,showLabels:true});
+    upsertChart('c_ov_deposits','bar',chartLabels,chartTotals,{dark:false,showLabels:true});
+    upsertChart('c_dep_count','bar',chartLabels,chartCounts,{dark:true,showLabels:true});
+    
+    const batchTotals = {};
+    depositMonths.forEach(m => m.deposits.forEach(d => {
+      if(d.amount > 0) batchTotals['Batch '+d.batchNo] = (batchTotals['Batch '+d.batchNo] || 0) + d.amount;
+    }));
+    const batchKeys = Object.keys(batchTotals).sort((a,b) => parseInt(a.split(' ')[1]) - parseInt(b.split(' ')[1]));
+    const batchVals = batchKeys.map(k => batchTotals[k]);
+    const batchPalette = batchKeys.map((_,i) => BATCH_COLORS[i % BATCH_COLORS.length]);
+    upsertChart('c_dep_batches','bar',batchKeys,batchVals,{palette:batchPalette,showLabels:true});
+  }
+  
+  // Re-render harvest monthly chart
+  const fharvest = getFilteredHarvestMonthly();
+  const hkeys = Object.keys(fharvest).sort();
+  if(hkeys.length > 0){
+    const hlabels = hkeys.map(k => {
+      const [yr,mn] = k.split('-');
+      return new Date(parseInt(yr), parseInt(mn)-1).toLocaleString('default',{month:'short',year:'numeric'});
+    });
+    const hdata = hkeys.map(k => fharvest[k]);
+    upsertChart('c_monthlyHarvest','bar',hlabels,hdata,{dark:true,showLabels:true});
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RENDER FUNCTIONS
 // ═══════════════════════════════════════════════════════════════
 
 function renderDeposits(){
-  const months = DEPOSIT_DATA.map(m => {
+  const depositMonths = getFilteredDeposits().map(m => {
     const total = m.deposits.reduce((s,d) => s + d.amount, 0);
     return {
-      name: m.month,
-      year: m.year,
-      displayTotal: total,
-      computedTotal: total,
-      deposits: m.deposits.map(d => ({
-        batchNo: d.batchNo,
-        date: d.date,
-        parsedDate: new Date(d.date),
-        amount: d.amount,
-        rowDepNo: d.depNo
-      }))
+      name: m.month, year: m.year, displayTotal: total, computedTotal: total,
+      deposits: m.deposits.map(d => ({batchNo: d.batchNo, date: d.date, parsedDate: new Date(d.date), amount: d.amount, rowDepNo: d.depNo}))
     };
   });
 
-  const active = months;
+  const active = depositMonths;
   const grandTotal = active.reduce((s,m) => s + m.displayTotal, 0);
   
   const allDepositsFlat = [];
-  active.forEach(m => {
-    m.deposits.forEach(d => {
-      if(d.amount > 0 && d.parsedDate) allDepositsFlat.push({...d, month:m});
-    });
-  });
+  active.forEach(m => { m.deposits.forEach(d => { if(d.amount > 0 && d.parsedDate) allDepositsFlat.push({...d, month:m}); }); });
   allDepositsFlat.sort((a,b) => a.parsedDate - b.parsedDate);
   
   let lastDepositDate = null, lastDepositBatch = null, lastDepositAmount = 0, lastDepositNo = '';
@@ -898,11 +1184,11 @@ function renderDeposits(){
   }
   
   let firstYear = 2025, lastYear = 2026;
-  let lastMonthTotal = active[active.length-1].displayTotal;
-  let lastMonthName = monthLbl(active[active.length-1]);
+  let lastMonthTotal = active.length > 0 ? active[active.length-1].displayTotal : 0;
+  let lastMonthName = active.length > 0 ? monthLbl(active[active.length-1]) : '—';
   const totalEntries = allDepositsFlat.length;
-  const peakMonth = active.reduce((a,b) => a.displayTotal > b.displayTotal ? a : b);
-  const avgMonthly = grandTotal / active.length;
+  const peakMonth = active.length > 0 ? active.reduce((a,b) => a.displayTotal > b.displayTotal ? a : b) : null;
+  const avgMonthly = active.length > 0 ? grandTotal / active.length : 0;
   
   setKPI('kpi-dep-grand-total', fmtMWK(grandTotal));
   setKPI('kpi-dep-last-deposit', lastDepositDate ? lastDepositDate.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '—');
@@ -1026,7 +1312,6 @@ function renderDepositAccordion(active){
     </div>`;
   }).join('');
   
-  // Open first year by default
   if(yearOrder.length > 0){
     document.getElementById('deposit-year-container').style.maxHeight = '5000px';
     document.getElementById('grand-chevron').style.transform = 'rotate(180deg)';
@@ -1095,20 +1380,23 @@ function renderLand(){
 }
 
 function renderFinancials(){
-  const months = FIN_MONTHS;
-  const plannedVol = PLANNED_VOL;
-  const actualVol = ACTUAL_VOL;
-  const actualPrice = ACTUAL_PRICE;
-  const actualWeight = ACTUAL_WEIGHT;
-  const actualRev = ACTUAL_REV;
+  const filtered = getFilteredMonths();
+  const months = filtered.months;
+  const fidx = filtered.indices;
+  
+  const plannedVol = fidx.map(i=>PLANNED_VOL[i]);
+  const actualVol = fidx.map(i=>ACTUAL_VOL[i]);
+  const actualPrice = fidx.map(i=>ACTUAL_PRICE[i]);
+  const actualWeight = fidx.map(i=>ACTUAL_WEIGHT[i]);
+  const actualRev = fidx.map(i=>ACTUAL_REV[i]);
 
-  let lastRev = actualRev[actualRev.length-1];
-  let lastVol = actualVol[actualVol.length-1];
+  let lastRev = actualRev.length > 0 ? actualRev[actualRev.length-1] : 0;
+  let lastVol = actualVol.length > 0 ? actualVol[actualVol.length-1] : 0;
   let totalRev = actualRev.reduce((a,b) => a+b, 0);
   let totalVol = actualVol.reduce((a,b) => a+b, 0);
   let weightSum = actualWeight.reduce((a,b) => a+b, 0);
   let weightCount = actualWeight.length;
-  let lastMonthWithData = months[months.length-1];
+  let lastMonthWithData = months.length > 0 ? months[months.length-1] : null;
 
   const avgPrice = totalVol > 0 ? totalRev / totalVol : 0;
   const avgWeight = weightCount > 0 ? weightSum / weightCount : 0;
@@ -1121,7 +1409,7 @@ function renderFinancials(){
     const match = label.match(/^([A-Za-z]+)/);
     return match ? match[1] : label;
   }
-  const lastMonthShort = shortMonth(lastMonthWithData);
+  const lastMonthShort = lastMonthWithData ? shortMonth(lastMonthWithData) : null;
   if(lastMonthShort){
     ['kpi-ov-last-rev-label','kpi-fin-last-rev-label'].forEach(id => {
       const el = document.getElementById(id);
@@ -1136,29 +1424,35 @@ function renderFinancials(){
   setKPI('kpi-fin-total-vol', totalVol.toLocaleString() + ' kg');
   setKPI('kpi-fin-avg-price', 'MWK ' + avgPrice.toFixed(0));
   setKPI('kpi-fin-avg-weight', avgWeight.toFixed(1) + ' kg');
-  setKPI('fin-sub', `${months.length} months of data — ${months[0]} to ${months[months.length-1]}`);
+  setKPI('fin-sub', `${months.length} months of data — ${months[0] || '—'} to ${months[months.length-1] || '—'}`);
 
-  upsertDualBarChart('c_fin_prodVolume', months, plannedVol, actualVol, 'Planned', 'Actual', NAVY_L, GOLD, false);
-  upsertChart('c_fin_revenue','bar',months,actualRev,{dark:true,fill:false,showLabels:true});
-  upsertChart('c_fin_price','line',months,actualPrice,{dark:false,fill:false,tension:0.4,showLabels:true});
-  upsertChart('c_fin_weight','line',months,actualWeight,{dark:false,fill:false,tension:0.4,showLabels:true});
-  upsertDualLineChart('c_fin_priceWeight', months, actualPrice, actualWeight, 'Avg Price (MWK)', 'Avg Weight (kg)', GOLD, NAVY_L);
+  if(months.length > 0){
+    upsertDualBarChart('c_fin_prodVolume', months, plannedVol, actualVol, 'Planned', 'Actual', NAVY_L, GOLD, false);
+    upsertChart('c_fin_revenue','bar',months,actualRev,{dark:true,fill:false,showLabels:true});
+    upsertChart('c_fin_price','line',months,actualPrice,{dark:false,fill:false,tension:0.4,showLabels:true});
+    upsertChart('c_fin_weight','line',months,actualWeight,{dark:false,fill:false,tension:0.4,showLabels:true});
+    upsertDualLineChart('c_fin_priceWeight', months, actualPrice, actualWeight, 'Avg Price (MWK)', 'Avg Weight (kg)', GOLD, NAVY_L);
+  }
 
   const tbody = document.getElementById('fin-table-body');
   if(tbody){
-    tbody.innerHTML = months.map((m,i) => {
-      const pv = plannedVol[i], av = actualVol[i], ap = actualPrice[i], aw = actualWeight[i], rev = actualRev[i];
-      const achPct = pv > 0 ? (av / pv) * 100 : 0;
-      return `<tr>
-        <td><strong>${m}</strong></td>
-        <td>${pv.toLocaleString()}</td>
-        <td>${av.toLocaleString()}</td>
-        <td>MWK ${ap.toLocaleString()}</td>
-        <td>${aw.toFixed(2)}</td>
-        <td>MWK ${rev.toLocaleString()}</td>
-        <td>${shareCell(achPct)}</td>
-      </tr>`;
-    }).join('');
+    if(months.length === 0){
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--olive);padding:24px;">No data for selected filter</td></tr>';
+    } else {
+      tbody.innerHTML = months.map((m,i) => {
+        const pv = plannedVol[i], av = actualVol[i], ap = actualPrice[i], aw = actualWeight[i], rev = actualRev[i];
+        const achPct = pv > 0 ? (av / pv) * 100 : 0;
+        return `<tr>
+          <td><strong>${m}</strong></td>
+          <td>${pv.toLocaleString()}</td>
+          <td>${av.toLocaleString()}</td>
+          <td>MWK ${ap.toLocaleString()}</td>
+          <td>${aw.toFixed(2)}</td>
+          <td>MWK ${rev.toLocaleString()}</td>
+          <td>${shareCell(achPct)}</td>
+        </tr>`;
+      }).join('');
+    }
   }
 
   return {lastRev, lastVol, avgPrice, avgWeight, totalVol, months, plannedVol, actualVol, actualPrice, actualWeight};
@@ -1252,7 +1546,6 @@ function renderTagging(){
   upsertChart('c_tagBlock2','bar',blocks,blocks.map(b => TAGGING_BY_BLOCK[b] || 0),{dark:true,showLabels:true});
   upsertChart('c_tagColour','bar',coloursSorted.slice(0,10).map(e => e[0]),coloursSorted.slice(0,10).map(e => e[1]),{horizontal:true,palette:tagColors.slice(0,10),showLabels:true});
 
-  // Forecast timeline
   const fc = document.getElementById('harvest-forecast-container');
   if(fc){
     const futureMonths = {};
@@ -1274,18 +1567,16 @@ function renderTagging(){
     }).join('') : '<div style="text-align:center;color:var(--olive);padding:20px;">No harvest forecast available</div>';
   }
 
-  // Expected harvest table
   const tableBody = document.getElementById('expected-harvest-body');
   if(tableBody){
     const today = new Date();
     const sorted = upcomingHarvests.sort((a,b) => a.expectedDate - b.expectedDate);
     tableBody.innerHTML = sorted.length > 0 ? sorted.map(item => {
       const isFuture = item.expectedDate >= today;
-      const dateClass = isFuture ? 'future-date' : 'past-date';
       const tagColor = TAG_PALETTE[item.colour] || GOLD;
       const colourBadge = `<span class="badge" style="background:${tagColor}20;color:${tagColor}">${item.colour}</span>`;
       return `<tr>
-        <td class="${dateClass}">${item.expectedDate.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</td>
+        <td>${item.expectedDate.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</td>
         <td>${item.taggedDate.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</td>
         <td>${colourBadge}</td>
         <td><span class="badge badge-gold">${item.block}</span></td>
@@ -1294,7 +1585,6 @@ function renderTagging(){
     }).join('') : '<tr><td colspan="5" class="expected-harvest-empty">No expected harvest data available</td></tr>';
   }
 
-  // Tag legend
   const legendEl = document.getElementById('tag-legend');
   if(legendEl){
     const maxVal = coloursSorted[0] ? coloursSorted[0][1] : 1;
@@ -1357,11 +1647,7 @@ function renderUpcomingHarvestAccordion(list){
   });
   const keys = Object.keys(byYearMonth).sort();
   const byYear = {};
-  keys.forEach(key => {
-    const yr = key.slice(0,4);
-    if(!byYear[yr]) byYear[yr] = [];
-    byYear[yr].push(key);
-  });
+  keys.forEach(key => { const yr = key.slice(0,4); if(!byYear[yr]) byYear[yr] = []; byYear[yr].push(key); });
   const years = Object.keys(byYear).sort();
 
   accordion.innerHTML = years.map((yr,yi) => {
@@ -1418,17 +1704,20 @@ function renderHarvest(){
   setKPI('kpi-harvest-topval', HARVEST_BY_BLOCK[topBlock].toLocaleString() + ' kg');
   setKPI('kpi-harvest-qty', avgQty.toFixed(1) + ' kg');
 
-  const allMonthKeys = Object.keys(HARVEST_MONTHLY).sort();
-  setKPI('harv-sub', `${blocks.length} blocks · ${allMonthKeys[0]} to ${allMonthKeys[allMonthKeys.length-1]}`);
+  const filteredHarvest = getFilteredHarvestMonthly();
+  const allMonthKeys = Object.keys(filteredHarvest).sort();
+  setKPI('harv-sub', `${blocks.length} blocks · ${allMonthKeys[0] || '—'} to ${allMonthKeys[allMonthKeys.length-1] || '—'}`);
 
   upsertChart('c_blockHarvest','bar',blocks,blocks.map(b => HARVEST_BY_BLOCK[b] || 0),{dark:true,showLabels:true});
   upsertChart('c_blockHarvest2','bar',blocks,blocks.map(b => HARVEST_BY_BLOCK[b] || 0),{showLabels:true});
 
-  const allMonthLabels = allMonthKeys.map(k => {
-    const [yr,mn] = k.split('-');
-    return new Date(parseInt(yr), parseInt(mn)-1).toLocaleString('default',{month:'short',year:'numeric'});
-  });
-  upsertChart('c_monthlyHarvest','bar',allMonthLabels,allMonthKeys.map(k => HARVEST_MONTHLY[k]),{dark:true,showLabels:true});
+  if(allMonthKeys.length > 0){
+    const allMonthLabels = allMonthKeys.map(k => {
+      const [yr,mn] = k.split('-');
+      return new Date(parseInt(yr), parseInt(mn)-1).toLocaleString('default',{month:'short',year:'numeric'});
+    });
+    upsertChart('c_monthlyHarvest','bar',allMonthLabels,allMonthKeys.map(k => filteredHarvest[k]),{dark:true,showLabels:true});
+  }
 
   const tbody = document.getElementById('harv-table-body');
   if(tbody){
@@ -1457,6 +1746,11 @@ function renderHarvest(){
 // ═══════════════════════════════════════════════════════════════
 
 function initDashboard(){
+  currentTimeFilter = 'all';
+  // Reset all filter buttons
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel.active .filter-btn').forEach((b,i)=>{if(i===0)b.classList.add('active');});
+  
   const landInfo = renderLand();
   const {globalAvgWeight} = renderHarvest();
   renderIrrigation();
@@ -1465,7 +1759,6 @@ function initDashboard(){
   const fin = renderFinancials();
   renderDeposits();
 
-  // Overview KPIs
   setKPI('kpi-ov-avg-weight', fin.avgWeight.toFixed(1) + ' kg');
   setKPI('kpi-ov-total-vol-2026', fin.totalVol.toLocaleString() + ' kg');
   setKPI('kpi-ov-land-progress', Math.min((landInfo.totalPlanted / TARGET_LAND_HA) * 100, 100).toFixed(1) + '%');
@@ -1482,7 +1775,6 @@ function initDashboard(){
   setKPI('data-status', 'Demo — ' + now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}));
   toast('✓ Dashboard loaded with demo data');
 
-  // Hide loading screen
   const ls = document.getElementById('loading-screen');
   if(ls && !ls.classList.contains('hidden')) setTimeout(() => ls.classList.add('hidden'), 300);
 }
